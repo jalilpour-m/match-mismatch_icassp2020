@@ -103,24 +103,24 @@ def lstm_model(shape_eeg, shape_env, units_lstm=16, filters_cnn_eeg=8, filters_c
 
     input_env_BN = tf.keras.layers.BatchNormalization()(input_env1)
 
-    output1_mel = tf.keras.layers.Convolution2D(filters_cnn_env, (kerSize_temporal, 1),
+    output1_env = tf.keras.layers.Convolution2D(filters_cnn_env, (kerSize_temporal, 1),
                                                 strides=(stride_temporal, 1), activation= fun_act)(input_env_BN)
-    output1_mel = tf.keras.layers.BatchNormalization()(output1_mel)
+    output1_env = tf.keras.layers.BatchNormalization()(output1_env)
 
     layer_permute = tf.keras.layers.Permute((1,3,2))
-    output1_mel = layer_permute(output1_mel)  # size = (210,4,8)
+    output1_env = layer_permute(output1_env)  # size = (210,4,8)
 
-    layer_reshape = tf.keras.layers.Reshape((tf.keras.backend.int_shape(output1_mel)[1],
-                                             tf.keras.backend.int_shape(output1_mel)[2]*tf.keras.backend.int_shape(output1_mel)[3]))
-    output1_mel = layer_reshape(output1_mel)    # size = (210,32)
+    layer_reshape = tf.keras.layers.Reshape((tf.keras.backend.int_shape(output1_env)[1],
+                                             tf.keras.backend.int_shape(output1_env)[2]*tf.keras.backend.int_shape(output1_env)[3]))
+    output1_env = layer_reshape(output1_env)    # size = (210,32)
 
     lstm_mel = tf.keras.layers.LSTM(units_lstm, return_sequences=True, activation= fun_act)
-    output2_mel = lstm_mel(output1_mel)  # size = (210,16)
+    output2_env = lstm_mel(output1_env)  # size = (210,16)
 
     ##############
     #### last common layers
     layer_dot = DotLayer()
-    cos_scores = layer_dot([output3_eeg, output2_mel])
+    cos_scores = layer_dot([output3_eeg, output2_env])
 
     layer_expand = tf.keras.layers.Lambda(lambda x: tf.keras.backend.expand_dims(x, axis=2))
     layer_sigmoid = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(1, activation = 'sigmoid'))
